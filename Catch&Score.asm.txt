@@ -1,0 +1,2547 @@
+;0 = Black
+;1 = Blue
+;2 = Green
+;3 = Aqua
+;4 = Red
+;5 = Purple
+;6 = Yellow
+;7 = White
+;8 = Gray,
+;9 = Light Blue.
+[org 0x0100]
+jmp start
+tickcount: dw 0
+oldisrt : dd 0
+tm: dw 0
+src: db 'Score :',0
+st: db 'Catch and Score'        ;len =19
+stt: db 'Rules :'               ; len=7
+sttt: db '1: Game is over if you catch the black bomb'; len=43
+stttt: db '2: Grey color gives you 5 score'     ; len=31
+sttttt: db '3: Red color gives you 10 score  '  ;len=32
+stttttt: db '4: Blue color gives you 15 score  '  ; len=34
+sttttttt: db '5: Press any key to enter the game'  ;len=34
+stttttttt: db '6: Total time 80 seconds'  ;len=24
+time : db 'Time :',0
+bkpos: dw 34
+oldisr: dd 0
+valx :db 2
+srctot :dw 0
+src5: dw 0
+src10: dw 0
+src15: dw 0
+exitthbomb: dw 0
+
+calp : dw 0 
+en: db 'Game Over'     ;len=9
+enn: db 'Your score :'  ;len=12
+ennn:db 'Total 5 score object :';len =22
+ennnn:db 'Total 10 score object :';len =23
+ennnnn:db 'Total 15 score object :';len =23
+ra : dw 0
+
+
+
+
+
+
+
+rand:
+push ax
+push bx
+push cx
+push dx
+
+
+agr:
+
+
+rdtsc ;getting a random number in ax dx
+xor dx,dx ;making dx 0
+mov cx,80
+div cx ;        dividing by 70 to get numbers from 0-69
+mov [ra],dl 
+cmp word[ra],70
+jge agr
+cmp word[ra],8
+jle agr
+
+
+pop dx
+pop cx
+pop bx
+pop ax
+
+    ret
+
+
+
+
+calcsrc:
+push ax
+push bx
+push cx
+push dx
+
+xor dx,dx
+xor ax,ax
+xor bx,bx
+xor cx,cx
+mov al,5
+mov bl,[src5]
+mul bl
+mov dx,ax
+
+xor ax,ax
+xor bx,bx
+xor cx,cx
+mov al,10
+mov bl,[src10]
+mul bl
+add dx,ax
+
+xor ax,ax
+xor bx,bx
+xor cx,cx
+mov al,15
+mov bl,[src15]
+mul bl
+add dx,ax
+
+mov [srctot],dx
+
+
+
+
+
+pop dx
+pop cx
+pop bx
+pop ax
+ret
+
+
+delayfortimer:
+push bp
+mov bp,sp
+push ax
+push bx
+push cx
+push dx
+mov ax,[bp+4]
+xor bx,bx
+mov bl,18
+div bl
+
+cmp ah,0
+jne ex
+
+add word[tm],1
+push word[tm]
+
+call load_time
+ex:
+pop dx
+pop cx
+pop bx
+pop ax
+pop bp
+
+ret 2
+
+
+
+
+
+delay
+push cx
+mov cx,10000
+L:dec cx
+cmp cx,0
+jne L
+
+mov cx,10000
+L1:dec cx
+cmp cx,0
+jne L1
+mov cx,10000
+L2:dec cx
+cmp cx,0
+jne L2
+
+
+pop cx
+ret
+
+
+
+
+
+calposition:
+
+
+ push bp
+mov bp, sp
+push ax
+push bx
+
+mov ax,0xb800
+mov es,ax
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,[bp+6]
+mul  bl							 ; multiply with y position
+add ax, [bp+4]  				             ; add x position
+shl ax, 1
+mov word[calp],ax 
+
+
+pop bx
+pop ax
+pop bp
+
+ret 4
+
+
+checkcolisn:
+
+
+ push bp
+mov bp, sp
+push ax
+push bx
+
+mov ax,[bp+6]       
+push ax
+mov ax,[bp+4]        
+push ax
+call calposition
+mov ax,[calp]
+mov bx,[bp+8]
+add bx,[bp+10]
+cmp ax,bx
+jne lvy1
+mov dx,1
+jmp lvy
+
+lvy1:
+add bx,2
+cmp ax,bx
+jne lvy2
+mov dx,1
+jmp lvy
+
+lvy2:
+add bx,2
+cmp ax,bx
+jne lvy3
+mov dx,1
+jmp lvy
+
+lvy3:
+add bx,2
+cmp ax,bx
+jne lvy4
+mov dx,1
+jmp lvy
+
+lvy4:
+add bx,2
+cmp ax,bx
+jne lvy5
+mov dx,1
+jmp lvy
+
+lvy5:
+add bx,2
+cmp ax,bx
+jne lvy6
+mov dx,1
+jmp lvy
+
+lvy6:
+add bx,2
+cmp ax,bx
+jne lvy7
+mov dx,1
+jmp lvy
+
+lvy7:
+add bx,2
+cmp ax,bx
+jne lvy8
+mov dx,1
+jmp lvy
+
+lvy8:
+add bx,2
+cmp ax,bx
+jne lvy9
+mov dx,1
+jmp lvy
+
+lvy9:
+add bx,2
+cmp ax,bx
+jne lvy
+mov dx,1
+
+
+
+lvy:
+pop bx
+pop ax
+pop bp
+
+ret 8
+
+
+
+
+
+
+
+
+
+checkcolisnb:
+
+
+ push bp
+mov bp, sp
+push ax
+push bx
+
+mov ax,[bp+6]       
+push ax
+mov ax,[bp+4]        
+push ax
+call calposition
+mov ax,[calp]
+mov bx,[bp+8]
+add bx,[bp+10]
+cmp ax,bx
+jne lvy1
+mov dx,1
+jmp lvyb
+
+lvyb1:
+add bx,2
+cmp ax,bx
+jne lvyb2
+mov dx,1
+jmp lvyb
+
+lvyb2:
+add bx,2
+cmp ax,bx
+jne lvyb3
+mov dx,1
+jmp lvyb
+
+lvyb3:
+add bx,2
+cmp ax,bx
+jne lvyb4
+mov dx,1
+jmp lvyb
+
+lvyb4:
+add bx,2
+cmp ax,bx
+jne lvyb5
+mov dx,1
+jmp lvyb
+
+lvyb5:
+add bx,2
+cmp ax,bx
+jne lvyb6
+mov dx,1
+jmp lvyb
+
+lvyb6:
+add bx,2
+cmp ax,bx
+jne lvyb7
+mov dx,1
+jmp lvyb
+
+lvyb7:
+add bx,2
+cmp ax,bx
+jne lvyb8
+mov dx,1
+jmp lvyb
+
+lvyb8:
+add bx,2
+cmp ax,bx
+jne lvyb9
+mov dx,1
+jmp lvyb
+lvyb9:
+add bx,2
+cmp ax,bx
+jne lvyb
+mov dx,1
+
+
+lvyb:
+pop bx
+pop ax
+pop bp
+
+ret 8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;start screen
+
+start_screen:
+
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax, 0xb800
+mov es, ax 
+mov di, 0 
+mov ax,0x6920
+mov cx,2000
+cld 
+rep stosw
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x071E   ; row and column in hexa
+mov cx,15     ;length of string 
+push cs
+pop es
+mov bp,st
+int 0x10
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0A19   ; row and column in hexa
+mov cx,7     ;length of string 
+push cs
+pop es
+mov bp,stt
+int 0x10
+
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0C19   ; row and column in hexa
+mov cx,43     ;length of string 
+push cs
+pop es
+mov bp,sttt
+int 0x10
+
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0D19   ; row and column in hexa
+mov cx,31     ;length of string 
+push cs
+pop es
+mov bp,stttt
+int 0x10
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0E19   ; row and column in hexa
+mov cx,33     ;length of string 
+push cs
+pop es
+mov bp,sttttt
+int 0x10
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0F19   ; row and column in hexa
+mov cx,34     ;length of string 
+push cs
+pop es
+mov bp,stttttt
+int 0x10
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x1019   ; row and column in hexa
+mov cx,34     ;length of string 
+push cs
+pop es
+mov bp,sttttttt
+int 0x10
+
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x1119   ; row and column in hexa
+mov cx,24     ;length of string 
+push cs
+pop es
+mov bp,stttttttt
+int 0x10
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+
+ret
+
+
+
+
+
+
+
+setback: 
+
+
+push es
+push ax
+push cx
+push si
+push di
+
+mov ax, 0xb800
+mov es, ax 
+mov di, 0 
+mov ax,0x3920
+mov cx,1920
+cld 
+rep stosw
+
+nextloc1: mov word [es:di], 0x4920
+add di, 2 
+cmp di, 4000
+jne nextloc1
+
+
+pop di
+pop si
+pop cx
+pop ax
+pop es
+
+ret
+
+
+
+
+
+
+
+; to print bucket
+
+
+print_bucket
+
+
+ push bp
+mov bp, sp
+push es
+push ax
+push bx
+push cx
+push si
+push di
+
+mov ax,0xb800
+mov es,ax
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,21
+mul  bl							 ; multiply with y position
+add ax, [bp+4]  				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,2					 ; point di to required location
+
+prntb_again:
+mov cx,7
+
+prntb:
+mov word[es:di],0x5920
+add di,2
+loop prntb
+
+add di,146
+mov cx,7
+sub ax,1
+cmp ax,0
+jne prntb_again
+
+
+
+
+
+pop di
+pop si
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+
+ret 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; to remove bucket
+
+
+remove_bucket:
+
+
+ push bp
+mov bp, sp
+push es
+push ax
+push bx
+push cx
+push si
+push di
+
+mov ax,0xb800
+mov es,ax
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,21
+mul  bl							 ; multiply with y position
+add ax, [bp+4]  				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,2					 ; point di to required location
+
+prntbr_again:
+mov cx,7
+
+prntbr:
+mov word[es:di],0x3920
+add di,2
+loop prntbr
+
+add di,146
+mov cx,7
+sub ax,1
+cmp ax,0
+jne prntbr_again
+
+
+
+
+
+pop di
+pop si
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+
+ret 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;Scoring objects
+
+
+
+score_objects_val_5 : 
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax,2
+mov [valx],ax
+
+sov5:
+
+
+
+
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[valx]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+
+
+push 310
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+
+cmp dx,1
+
+je adsrc5
+
+
+push 150
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+je adsrc5
+
+push 0
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+jne lef5s
+
+adsrc5:
+
+add word[srctot],5
+
+mov ax,[src5]
+add ax,1
+mov [src5],ax
+
+call calcsrc
+push word[srctot]
+call load_score
+
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_5
+
+              
+
+
+
+
+
+jmp left5
+
+
+
+
+
+
+
+
+
+
+lef5s:
+
+mov ax,2					 ; point di to required location
+prntsrc_again_5:
+mov cx,4
+
+prntsrc_5:
+mov word[es:di],0x7920
+add di,2
+loop prntsrc_5
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_5
+
+call delay
+call delay
+call delay
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_5
+
+
+
+mov ax,[valx]
+add ax,1
+mov [valx],ax
+cmp byte[valx],23
+jne sov5
+
+
+
+left5:
+
+
+
+
+
+
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 2
+
+
+
+
+
+
+
+
+
+
+
+Rscore_objects_val_5 : 
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[bp+6]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,2					 ; point di to required location
+
+prntsrc_again_5r:
+mov cx,4
+
+prntsrc_5r:
+mov word[es:di],0x3920
+add di,2
+loop prntsrc_5r
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_5r
+
+
+
+
+
+
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+score_objects_val_10:
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax,2
+mov [valx],ax
+sov10:
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[valx]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+
+
+
+
+
+
+
+
+push 310
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+
+cmp dx,1
+
+je adsrc10
+
+
+push 150
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+je adsrc10
+
+push 0
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+jne lef10s
+
+adsrc10:
+
+
+
+
+
+
+
+add word[srctot],10
+
+mov ax,[src10]
+add ax,1
+mov [src10],ax
+
+call calcsrc
+push word[srctot]                ;score
+call load_score
+
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_10
+
+              
+
+
+
+
+
+jmp left10
+
+
+
+
+
+
+
+
+
+
+lef10s:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+mov ax,2					 ; point di to required location
+
+prntsrc_again_10:
+mov cx,4
+
+prntsrc_10:
+mov word[es:di],0x4720
+add di,2
+loop prntsrc_10
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_10
+
+call delay
+call delay
+call delay
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_10
+
+
+
+mov ax,[valx]
+add ax,1
+mov [valx],ax
+cmp byte[valx],23
+jne sov10
+
+
+left10:
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 2
+
+
+
+
+
+
+
+Rscore_objects_val_10:
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[bp+6]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,2					 ; point di to required location
+
+prntsrc_again_10r:
+mov cx,4
+
+prntsrc_10r:
+mov word[es:di],0x3920
+add di,2
+loop prntsrc_10r
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_10r
+
+
+
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 4
+
+
+
+
+
+
+
+
+
+
+
+score_objects_val_15:
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax,2
+mov [valx],ax
+sov15:
+
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[valx]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+
+
+
+
+
+
+push 310
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+
+cmp dx,1
+
+je adsrc15
+
+
+push 150
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+je adsrc15
+
+push 0
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisn
+cmp dx,1
+jne lef15s
+
+adsrc15:
+
+add word[srctot],15
+
+mov ax,[src15]
+add ax,1
+mov [src15],ax
+
+call calcsrc
+push word[srctot]              ;score
+call load_score
+
+
+
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_15
+
+              
+
+
+
+
+
+jmp left15
+
+
+
+
+
+
+
+
+
+
+lef15s:
+
+
+
+
+
+
+
+
+
+
+
+mov ax,2					 ; point di to required location
+
+prntsrc_again_15:
+mov cx,4
+
+prntsrc_15:
+mov word[es:di],0x9320
+add di,2
+loop prntsrc_15
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_15
+
+call delay
+;call delay
+call delay
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rscore_objects_val_15
+
+
+
+mov ax,[valx]
+add ax,1
+mov [valx],ax
+cmp byte[valx],23
+jne sov15
+
+
+left15:
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 2
+
+
+
+
+Rscore_objects_val_15:
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[bp+6]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,2					 ; point di to required location
+
+prntsrc_again_15r:
+mov cx,4
+
+prntsrc_15r:
+mov word[es:di],0x3920
+add di,2
+loop prntsrc_15r
+
+add di,152
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntsrc_again_15r
+
+
+
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 4
+
+
+
+
+
+
+
+
+
+; load score on screen
+
+
+load_score:
+push bp
+mov bp, sp
+push es
+push ax
+push bx
+push cx
+push si
+push di
+
+
+
+
+; for score tag
+
+
+push ds
+pop es               			        	 ; load ds in es
+mov di, src                              	 ; point di to string
+mov cx, 0xffff 						 ; load maximum number in cx
+xor al, al 				   		       ; load a zero in al
+repne scasb							 ; find zero in the string
+mov ax, 0xffff				 		 ; load maximum number in ax
+sub ax, cx 							 ; find change in cx
+dec ax 							 ; exclude null from length
+mov cx, ax							 ; load string length in cx
+mov ax, 0xb800
+mov es, ax 							 ; point es to video base
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,1
+mul  bl							 ; multiply with y position
+add ax, 30  				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+mov si, src          				 ; point si to string
+mov ah, 0x27 						 ; load attribute in ah
+
+cld 
+
+
+nextchar1: lodsb 
+stosw 
+loop nextchar1
+
+
+
+
+
+; for score value
+
+
+mov ax, 0xb800
+mov es, ax 							; point es to video base
+mov ax, [bp+4] 						; load number in ax
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit: mov dx, 0 					; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,1
+mul  bl							 ; multiply with y position
+add ax, 37	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos: 
+pop dx 						; remove a digit from the stack
+mov dh, 0x27						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos 						; repeat for all digits on stack
+
+
+
+
+
+
+
+pop di
+pop si
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+ret 2
+
+
+
+
+
+
+
+
+
+; load time on screen
+
+
+load_time:
+push bp
+mov bp, sp
+push es
+push ax
+push bx
+push cx
+push si
+push di
+
+
+
+; for time tag
+
+
+
+push ds
+pop es               			        	 ; load ds in es
+mov di, time                               	 ; point di to string
+mov cx, 0xffff 						 ; load maximum number in cx
+xor al, al 				   		       ; load a zero in al
+repne scasb							 ; find zero in the string
+mov ax, 0xffff				 		 ; load maximum number in ax
+sub ax, cx 							 ; find change in cx
+dec ax 							 ; exclude null from length
+
+mov cx, ax							 ; load string length in cx
+mov ax, 0xb800
+mov es, ax 							 ; point es to video base
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,1
+mul  bl							 ; multiply with y position
+add ax, 1    				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+mov si, time            				 ; point si to string
+mov ah, 0x27 						 ; load attribute in ah
+
+cld 
+
+
+nextchar: lodsb 
+stosw 
+loop nextchar
+
+
+
+
+
+; for Time value
+
+
+mov ax, 0xb800
+mov es, ax 							; point es to video base
+mov ax, [bp+4] 						; load number in ax
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit1: mov dx, 0 					; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit1					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,1
+mul  bl							 ; multiply with y position
+add ax, 7	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos1: pop dx 						; remove a digit from the stack
+mov dh, 0x27						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos1 						; repeat for all digits on stack
+
+
+
+
+
+
+
+
+pop di
+pop si
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+ret 2
+
+
+
+
+dispexit:
+push es
+push ax
+push bx
+push cx
+push dx
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0723   ; row and column in hexa
+mov cx,9      ;length of string 
+push cs
+pop es
+mov bp,en
+int 0x10
+
+
+
+
+
+
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+
+
+
+
+
+ret
+
+
+
+
+end_screen:
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax, 0xb800
+mov es, ax 
+mov di, 0 
+mov ax,0x6920
+mov cx,2000
+cld 
+rep stosw
+
+
+; for total score
+
+
+
+mov ax, 0xb800
+mov es, ax 							; point es to video base
+mov ax,[bp+4]						; load number in ax
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit11: 
+mov dx, 0 			             		; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit11					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,0xC
+mul  bl							 ; multiply with y position
+add ax, 0x26	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos11: pop dx 						; remove a digit from the stack
+mov dh, 0x07						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos11 						; repeat for all digits on stack
+
+
+
+
+; for total score5
+
+
+
+mov ax, 0xb800
+mov es, ax 							; point es to video base
+mov ax,[src5] 						; load number in ax
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit115: 
+mov dx, 0 			             		; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit115					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,0xD
+mul  bl							 ; multiply with y position
+add ax, 0x30	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos115: pop dx 						; remove a digit from the stack
+mov dh, 0x07						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos115 						; repeat for all digits on stack
+
+
+; for total score10
+
+
+
+mov ax, 0xb800
+mov es, ax 							; point es to video base
+mov ax,[src10] 						; load number in ax
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit1110: 
+mov dx, 0 			             		; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit1110					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,0xE
+mul  bl							 ; multiply with y position
+add ax, 0x31	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos1110: pop dx 						; remove a digit from the stack
+mov dh, 0x07						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos1110						; repeat for all digits on stack
+
+
+
+
+; for total score15
+
+
+
+mov ax, 0xb800
+mov es, ax 	
+mov ax,[src15] 						; point es to video base
+mov bx, 10 							; use base 10 for division
+mov cx, 0 							; initialize count of digits
+
+nextdigit1115: 
+mov dx, 0 			             		; zero upper half of dividend
+div bx 							; divide by 10
+add dl, 0x30 						; convert digit into ascii value
+push dx 							; save ascii value on stack
+inc cx 							; increment count of values
+cmp ax, 0 							; is the quotient zero
+jnz nextdigit1115					 	; if no divide it again
+
+
+
+mov al, 80 						   	 ; load al with columns per row
+xor bx,bx
+mov bl,0xF
+mul  bl							 ; multiply with y position
+add ax, 0x31	 				             ; add x position
+shl ax, 1 
+mov di,ax 							 ; point di to required location
+
+ 						
+nextpos1115: pop dx 						; remove a digit from the stack
+mov dh, 0x07						; use normal attribute
+mov [es:di], dx 						; print char on screen
+add di, 2 							; move to next screen location
+loop nextpos1115 						; repeat for all digits on stack
+
+
+
+
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0723   ; row and column in hexa
+mov cx,9      ;length of string 
+push cs
+pop es
+mov bp,en
+int 0x10
+
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0C19   ; row and column in hexa
+mov cx,12    ;length of string 
+push cs
+pop es
+mov bp,enn
+int 0x10
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0D19   ; row and column in hexa
+mov cx,22    ;length of string 
+push cs
+pop es
+mov bp,ennn
+int 0x10
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0E19   ; row and column in hexa
+mov cx,23    ;length of string 
+push cs
+pop es
+mov bp,ennnn
+int 0x10
+
+mov ah,0x13         ;service 13 print string
+mov al,1          ;subservice 01
+mov bh,0     ;page no
+mov bl,7          ;  attribute color
+mov dx,0x0F19   ; row and column in hexa
+mov cx,23    ;length of string 
+push cs
+pop es
+mov bp,ennnnn
+int 0x10
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+
+
+ret 2
+
+
+
+
+
+bombs:
+
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+mov ax,2
+mov [valx],ax
+
+sovb:
+
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[valx]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+
+
+
+
+
+push 472
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisnb
+
+cmp dx,1
+je adrb
+
+push 312
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisnb
+
+cmp dx,1
+je adrb
+
+push 152
+push di
+mov ax,21
+push ax
+push word[bkpos]
+
+call checkcolisnb
+
+cmp dx,1
+jne lefbs
+
+
+adrb:
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rbombs
+
+
+mov word[exitthbomb],-1
+
+
+jmp leftb
+
+
+
+
+
+
+
+
+
+
+lefbs:
+
+
+
+
+
+
+mov ax,3					 ; point di to required location
+
+prntbomb_again:
+mov cx,3
+
+prntbomb:
+mov word[es:di],0x0720
+add di,2
+loop prntbomb
+
+add di,154
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntbomb_again
+
+call delay
+call delay
+call delay
+mov ax,[valx]
+push ax
+mov ax,[bp+4]
+push ax
+call Rbombs
+
+
+
+mov ax,[valx]
+add ax,1
+mov [valx],ax
+cmp byte[valx],22
+jne sovb
+
+
+
+leftb:
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 2
+
+
+
+
+
+Rbombs:
+
+
+
+
+push bp
+mov bp,sp
+push es
+push ax
+push bx
+push cx
+push dx
+push si
+push di
+
+mov ax, 0xb800
+mov es, ax 
+mov al, 80 						   	 ; load al with columns per row
+xor bx, bx
+mov bl,[bp+6]
+mul  bl							 ; multiply with y position
+add ax,[bp+4] 				             ; add x position
+shl ax, 1 
+mov di, ax	
+mov ax,3					 ; point di to required location
+
+prntbomb_againr:
+mov cx,3
+
+prntbombr:
+mov word[es:di],0x3920
+add di,2
+loop prntbombr
+
+add di,154
+mov cx,4
+sub ax,1
+cmp ax,0
+jne prntbomb_againr
+
+
+
+
+
+
+pop di
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop es
+pop bp
+
+ret 4
+
+
+
+;keyboard input
+
+
+
+
+
+kbisr: 
+
+push ax
+push bx
+push es
+
+
+mov ax,0
+cmp word[bkpos],ax
+je set_bk_pos_to_70
+
+mov ax,70
+cmp word[bkpos],ax
+je set_bk_pos_to_0
+
+jmp kb
+
+set_bk_pos_to_70:
+
+mov bx,[bkpos]
+push bx
+call remove_bucket
+mov ax,68
+
+mov [bkpos],ax
+mov bx,[bkpos]
+push bx
+call print_bucket
+
+jmp kb
+
+set_bk_pos_to_0:
+
+mov bx,[bkpos]
+push bx
+call remove_bucket
+mov ax,2
+mov [bkpos],ax
+mov bx,[bkpos]
+push bx
+call print_bucket
+
+kb:
+
+; checking boundries
+
+
+
+
+
+
+
+
+
+
+ in al, 0x60 ; read a char from keyboard port
+
+
+
+
+
+cmp al,0x4d
+jne next
+
+mov bx,[bkpos]
+push bx
+call remove_bucket
+
+add word[bkpos],2
+
+mov bx,[bkpos]
+
+push bx
+call print_bucket
+
+jmp nomatch
+
+
+
+
+next: 
+cmp al,0x4b
+jne nomatch 
+
+mov bx,[bkpos]
+push bx
+call remove_bucket
+
+sub word[bkpos],2
+
+mov bx,[bkpos]
+
+push bx
+call print_bucket
+
+
+
+
+
+nomatch: 
+ pop es
+ pop bx
+ pop ax
+ jmp far [cs:oldisr] ; call the original ISR
+
+
+
+
+
+
+;____________________________________________________________________________
+;timer
+
+timer: push ax
+ inc word [cs:tickcount]; increment tick count 
+ push word [cs:tickcount]
+ call delayfortimer
+
+ mov al, 0x20
+ out 0x20, al ; end of interrupt
+ pop ax
+ iret ; return from interrupt
+
+
+
+
+
+
+start:
+
+
+; keyboard hooking
+
+xor ax, ax
+
+mov es, ax ; point es to IVT base
+ mov ax, [es:9*4]
+ mov [oldisr], ax ; save offset of old routine
+ mov ax, [es:9*4+2]
+ mov [oldisr+2], ax ; save segment of old routine
+ cli ; disable interrupts
+ mov word [es:9*4], kbisr ; store offset at n*4
+ mov [es:9*4+2], cs ; store segment at n*4+2
+ sti 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+call start_screen
+mov ah,0
+int 0x16
+
+
+; timer hooking
+
+ xor ax, ax
+ mov es, ax ; point es to IVT base
+
+ mov ax,[es:8*4]; store offset at n*4
+ mov [oldisrt],ax
+ mov ax,[es:8*4+2] ; store segment at n*4+2
+ mov [oldisrt+2],ax
+
+cli ; disable interrupts
+ mov word [es:8*4], timer ; store offset at n*4
+ mov [es:8*4+2], cs ; store segment at n*4+2
+ sti 
+
+
+
+
+  
+
+
+call setback
+
+
+
+
+
+
+push 0           
+
+call load_time
+
+;set score
+
+
+
+mov word[srctot],0
+add word[srctot],0
+mov ax,[srctot]
+push ax                ;score
+
+call load_score
+
+
+
+
+
+mov ax,[bkpos]
+push ax
+call print_bucket
+
+
+
+
+
+
+
+
+
+
+
+
+;____________________________________________________________________________________________________
+; (row is 21) and (column is bkpos) for bucket in every case 
+
+l22:
+
+; every object always drop from 1 row
+
+
+call rand
+push word[ra]
+call score_objects_val_10
+                
+
+;bomb objects
+
+
+call rand
+push word[ra]
+call score_objects_val_15
+
+cmp word [tm],80
+je l21
+call rand
+push word[ra]
+call bombs
+cmp  word[exitthbomb],-1   
+      je l21
+
+call rand
+push word[ra]
+call score_objects_val_5
+
+
+cmp word [tm],80
+je l21
+call rand
+push word[ra]
+call score_objects_val_15
+
+;bomb objects
+
+
+cmp word [tm],80
+je l21
+call rand
+push word[ra]
+call bombs
+cmp  word[exitthbomb],-1   
+      je l21
+
+cmp word [tm],80
+je l21                  
+
+;bomb objects
+
+
+cmp word [tm],80
+je l21
+call rand
+push word[ra]
+call bombs
+cmp  word[exitthbomb],-1   
+      je l21
+
+call rand
+push word[ra]
+call score_objects_val_5
+ 
+mov ah,0
+in al, 0x60 
+cmp al, 0x01  
+ je l21 
+
+
+;_______________
+
+
+
+
+
+
+
+
+
+jmp l22
+
+
+
+
+
+
+
+
+
+
+
+
+
+;____________________________________________________________________________________________________
+
+; (row is 21) and (column is bkpos) for bucket in every case 
+
+l21:
+
+; unhook timer
+ mov ax, [oldisrt] ; read old offset in ax
+ mov bx, [oldisrt+2] ; read old segment in bx
+ cli ; disable interrupts
+ mov [es:8*4], ax ; restore old offset from ax
+ mov [es:8*4+2], bx ; restore old segment from bx
+ sti ; enable interrupts
+; unhook keyboard
+ mov ax, [oldisr] ; read old offset in ax
+ mov bx, [oldisr+2] ; read old segment in bx
+ cli ; disable interrupts
+ mov [es:9*4], ax ; restore old offset from ax
+ mov [es:9*4+2], bx ; restore old segment from bx
+ sti ; enable interrupts
+
+
+
+
+call dispexit
+
+
+
+
+
+
+
+
+mov ah,0
+int 0x16
+
+
+mov word[srctot],150
+call calcsrc
+mov ax,[srctot]
+push ax
+
+call end_screen
+
+
+
+
+
+
+
+
+
+
+
+
+ mov ax, 0x4c00 ; terminate program
+ int 0x21 
