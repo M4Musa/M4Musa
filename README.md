@@ -1,6 +1,6 @@
 👋 Hi, I’m @M4Musa
-👀 I’m interested in cybersecurity and blockchain.
-🌱 I’m currently learning about advanced encryption techniques and smart contract development.
+👀 I’m interested in machine earning, cybersecurity and blockchain.
+🌱 I’m currently learning about encryption techniques and smart contract development.
 💞️ I’m looking to collaborate on open-source projects related to cybersecurity or blockchain technology.
 📫 You can reach me through GitHub (@M4Musa) for any collaboration or discussion.
 <!---
